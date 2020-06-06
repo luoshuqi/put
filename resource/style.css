@@ -1,0 +1,17 @@
+/* request */
+textview.request {
+    font-family: monospace;
+    font-size: 10pt;
+}
+
+/* response */
+textview.response {
+    font-family: monospace;
+    font-size: 10pt;
+}
+
+/* list */
+treeview.list {
+    font-family: monospace;
+    font-size: 10pt;
+}

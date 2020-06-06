@@ -1,0 +1,10 @@
+[
+  {
+    "id": "1",
+    "name": "localhost",
+    "base_url": "http://localhost",
+    "env": {
+      "token": "foo"
+    }
+  }
+]
