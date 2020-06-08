@@ -36,6 +36,6 @@ body: foobar
 
 [安装gtk-rs](http://gtk-rs.org/docs/requirements.html)
 
-克隆项目，进入src目录，执行
+克隆项目，进入目录，执行
 
 > cargo build --release
