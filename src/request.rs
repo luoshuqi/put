@@ -12,8 +12,9 @@ static mut REQUEST_COUNTER: u32 = 0;
 
 type Map = HashMap<String, String>;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct YamlRequest {
+    path: Option<Map>,
     query: Option<Map>,
     header: Option<Map>,
     params: Option<Map>,
@@ -24,6 +25,7 @@ struct YamlRequest {
 
 #[derive(Default, Debug, Clone)]
 pub struct RequestParam {
+    pub path: Option<Map>,
     pub query: Option<Map>,
     pub header: Option<Map>,
     pub body: Option<Body>,
@@ -43,6 +45,7 @@ impl YamlRequest {
             None
         };
         Ok(RequestParam {
+            path: self.path,
             query: self.query,
             header: self.header,
             body,
@@ -144,7 +147,12 @@ impl Request {
             Some(url) if !url_is_absolute(&self.url) => url.clone(),
             _ => String::new(),
         };
-        url.push_str(&self.url);
+
+        if let Some(path_params) = &self.param.path {
+            url.push_str(&replace_path_params(self.url.clone(), path_params));
+        } else {
+            url.push_str(&self.url);
+        }
 
         if let Some(query) = &self.param.query {
             url.push('?');
@@ -343,4 +351,23 @@ fn is_alpha_digit(b: u8) -> bool {
 #[inline]
 fn url_is_absolute(url: &str) -> bool {
     url.starts_with("http://") || url.starts_with("https://")
+}
+
+fn replace_path_params(mut path: String, params: &Map) -> String {
+    let end_slash = if let Some(&b'/') = path.as_bytes().last() {
+        true
+    } else {
+        path.push(b'/' as _);
+        false
+    };
+
+    for (k, v) in params {
+        path = path.replace(&format!("/:{}/", k), &format!("/{}/", v));
+    }
+
+    if !end_slash {
+        path.pop();
+    }
+
+    return path;
 }
