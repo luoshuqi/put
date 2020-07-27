@@ -147,12 +147,18 @@ impl Request {
             Some(url) if !url_is_absolute(&self.url) => url.clone(),
             _ => String::new(),
         };
+        if !url.ends_with("/") {
+            url.push(b'/' as _);
+        }
 
         if let Some(path_params) = &self.param.path {
-            url.push_str(&replace_path_params(self.url.clone(), path_params));
+            let path = replace_path_params(self.url.clone(), path_params);
+            url.push_str(if path.starts_with("/") { &path[1..] } else { &path } );
         } else {
-            url.push_str(&self.url);
-        }
+            let path = &self.url;
+            url.push_str(if path.starts_with("/") { &path[1..] } else { path } );
+        };
+
 
         if let Some(query) = &self.param.query {
             url.push('?');
