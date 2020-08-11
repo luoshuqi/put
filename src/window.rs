@@ -345,7 +345,7 @@ impl Window {
                     Ok(..) => (),
                     Err(e) => self.show_error(e.to_string()),
                 };
-                store.select_set_top(&request.method, &request.url, &self.ui.tree);
+                //store.select_set_top(&request.method, &request.url, &self.ui.tree);
             }
 
             if let Some(status) = response.status() {
