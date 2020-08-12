@@ -151,10 +151,12 @@ struct Row {
 
 const SQL_SELECT_FILTER: &str = "SELECT method, url, title FROM request WHERE group_id=? AND (url LIKE ? OR title LIKE ? ) ORDER BY sort DESC LIMIT 200";
 const SQL_SELECT: &str =
-    "SELECT method, url, title FROM request WHERE group_id=? ORDER BY sort DESC LIMIT 200";
-const SQL_REPLACE: &str = "REPLACE INTO request (group_id, method, url, sort, request, response) VALUES (?, ?, ?, ?, ?, ?)";
+    "SELECT method, url, title FROM request WHERE group_id=? LIMIT 200";
+const SQL_REPLACE: &str = "REPLACE INTO request (group_id, method, url, sort, request, response, title) VALUES (?, ?, ?, ?, ?, ?, ?)";
 const SQL_FIND: &str =
     "SELECT request,response FROM request WHERE group_id=? AND method=? AND url=?";
+const SQL_FIND_NAME: &str =
+    "SELECT title FROM request WHERE group_id=? AND method=? AND url=?";
 const SQL_DELETE: &str = "DELETE FROM request WHERE group_id=? AND method=? AND url=?";
 const SQL_RENAME: &str = "UPDATE request SET title=? WHERE group_id=? AND method=? AND url=?";
 
@@ -187,14 +189,18 @@ fn select(group_id: &str, filter: Option<&str>) -> sqlite::Result<Vec<Row>> {
 }
 
 fn update(request: &Request, response: &str, group_id: &str) -> sqlite::Result<()> {
+    let name = find_name(group_id, request.method.as_str(), request.url.as_str())?;
+
     let conn = db::connection();
     let mut stmt = conn.prepare(SQL_REPLACE)?;
     stmt.bind(1, group_id)?;
     stmt.bind(2, request.method.as_str())?;
     stmt.bind(3, request.url.as_str())?;
-    stmt.bind(4, timestamp().unwrap_or(0) as i64)?;
+    //stmt.bind(4, timestamp().unwrap_or(0) as i64)?;
+    stmt.bind(4, 0)?;
     stmt.bind(5, request.raw.as_str())?;
     stmt.bind(6, response)?;
+    stmt.bind(7, name.as_ref().map(|x| x.as_str()))?;
     stmt.next()?;
     Ok(())
 }
@@ -207,6 +213,19 @@ pub fn find(group_id: &str, method: &str, url: &str) -> sqlite::Result<Option<(S
     stmt.bind(3, url)?;
     if let State::Row = stmt.next()? {
         Ok(Some((stmt.read(0)?, stmt.read(1)?)))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn find_name(group_id: &str, method: &str, url: &str) -> sqlite::Result<Option<String>> {
+    let conn = db::connection();
+    let mut stmt = conn.prepare(SQL_FIND_NAME)?;
+    stmt.bind(1, group_id)?;
+    stmt.bind(2, method)?;
+    stmt.bind(3, url)?;
+    if let State::Row = stmt.next()? {
+        Ok(Some(stmt.read(0)?))
     } else {
         Ok(None)
     }
@@ -233,6 +252,7 @@ pub fn rename(group_id: &str, method: &str, url: &str, name: &str) -> sqlite::Re
     Ok(())
 }
 
+#[allow(dead_code)]
 fn timestamp() -> Option<u64> {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
