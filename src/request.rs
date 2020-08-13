@@ -159,6 +159,10 @@ impl Request {
             url.push_str(if path.starts_with("/") { &path[1..] } else { path } );
         };
 
+        if url.starts_with("/") {
+            url = String::from(&url[1..]);
+        }
+
 
         if let Some(query) = &self.param.query {
             url.push('?');
