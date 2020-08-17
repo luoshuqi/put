@@ -149,9 +149,9 @@ struct Row {
     title: String,
 }
 
-const SQL_SELECT_FILTER: &str = "SELECT method, url, title FROM request WHERE group_id=? AND (url LIKE ? OR title LIKE ? ) ORDER BY sort DESC LIMIT 200";
+const SQL_SELECT_FILTER: &str = "SELECT method, url, title FROM request WHERE group_id=? AND (url LIKE ? OR title LIKE ? ) ORDER BY url LIMIT 200";
 const SQL_SELECT: &str =
-    "SELECT method, url, title FROM request WHERE group_id=? LIMIT 200";
+    "SELECT method, url, title FROM request WHERE group_id=? ORDER BY url LIMIT 200";
 const SQL_REPLACE: &str = "REPLACE INTO request (group_id, method, url, sort, request, response, title) VALUES (?, ?, ?, ?, ?, ?, ?)";
 const SQL_FIND: &str =
     "SELECT request,response FROM request WHERE group_id=? AND method=? AND url=?";
